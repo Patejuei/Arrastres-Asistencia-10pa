@@ -230,6 +230,7 @@ def generate_resumen_bombero_excel(file_path: str, reg_bombero: str) -> tuple[bo
                 "corr_cia": acto.get("corr_cia"),
                 "clave": acto.get("clave"),
                 "direccion": acto.get("direccion"),
+                "esquina": acto.get("esquina"),
                 "tipo": acto.get("tipo"),
                 "cantidad_listas": asis.get("cantidad_listas", 0)
             })
@@ -299,7 +300,7 @@ def generate_resumen_bombero_excel(file_path: str, reg_bombero: str) -> tuple[bo
             ws_anio.row_dimensions[1].height = 25
             ws_anio.row_dimensions[2].height = 18
             
-            headers = ["Fecha", "Corr. General", "Corr. Compañía", "Clave", "Dirección", "Tipo Acto", "Listas Asistidas"]
+            headers = ["Fecha", "Corr. General", "Corr. Compañía", "Clave", "Dirección", "Esquina", "Tipo Acto", "Listas Asistidas"]
             ws_anio.row_dimensions[4].height = 24
             
             for col_idx, text in enumerate(headers, 1):
@@ -319,10 +320,11 @@ def generate_resumen_bombero_excel(file_path: str, reg_bombero: str) -> tuple[bo
                 ws_anio.cell(row=r_idx, column=3, value=acto["corr_cia"]).alignment = ALIGN_CENTER
                 ws_anio.cell(row=r_idx, column=4, value=acto["clave"]).alignment = ALIGN_CENTER
                 ws_anio.cell(row=r_idx, column=5, value=acto["direccion"]).alignment = ALIGN_LEFT
-                ws_anio.cell(row=r_idx, column=6, value=acto["tipo"]).alignment = ALIGN_CENTER
-                ws_anio.cell(row=r_idx, column=7, value=acto["cantidad_listas"]).alignment = ALIGN_CENTER
+                ws_anio.cell(row=r_idx, column=6, value=acto["esquina"] or "-").alignment = ALIGN_LEFT
+                ws_anio.cell(row=r_idx, column=7, value=acto["tipo"]).alignment = ALIGN_CENTER
+                ws_anio.cell(row=r_idx, column=8, value=acto["cantidad_listas"]).alignment = ALIGN_CENTER
                 
-                for c in range(1, 8):
+                for c in range(1, 9):
                     ws_anio.cell(row=r_idx, column=c).font = DATA_FONT
                     ws_anio.cell(row=r_idx, column=c).border = THIN_BORDER
                     
@@ -330,16 +332,16 @@ def generate_resumen_bombero_excel(file_path: str, reg_bombero: str) -> tuple[bo
                 r_idx += 1
                 
             # Agregar fila de resumen al final del año
-            ws_anio.cell(row=r_idx, column=5, value="TOTAL DEL AÑO").font = BOLD_FONT
-            ws_anio.cell(row=r_idx, column=5).alignment = ALIGN_RIGHT
+            ws_anio.cell(row=r_idx, column=6, value="TOTAL DEL AÑO").font = BOLD_FONT
+            ws_anio.cell(row=r_idx, column=6).alignment = ALIGN_RIGHT
             
             total_listas_anio = sum(a["cantidad_listas"] for a in actos_anio)
-            cell_tot = ws_anio.cell(row=r_idx, column=7, value=total_listas_anio)
+            cell_tot = ws_anio.cell(row=r_idx, column=8, value=total_listas_anio)
             cell_tot.font = BOLD_FONT
             cell_tot.alignment = ALIGN_CENTER
             
-            ws_anio.cell(row=r_idx, column=5).border = THIN_BORDER
-            ws_anio.cell(row=r_idx, column=7).border = THIN_BORDER
+            ws_anio.cell(row=r_idx, column=6).border = THIN_BORDER
+            ws_anio.cell(row=r_idx, column=8).border = THIN_BORDER
             ws_anio.row_dimensions[r_idx].height = 20
             
             auto_fit_columns(ws_anio)

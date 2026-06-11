@@ -1,9 +1,17 @@
 import os
+import sys
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# Cargar variables de entorno del archivo .env en la raíz
-load_dotenv()
+# Cargar variables de entorno del archivo .env
+# Si estamos ejecutándonos desde AppData (empaquetados por Flet), buscamos el .env al lado del ejecutable .exe
+if "AppData" in os.path.abspath(__file__):
+    executable_dir = os.path.dirname(sys.executable)
+    dotenv_path = os.path.join(executable_dir, ".env")
+    load_dotenv(dotenv_path)
+else:
+    # En desarrollo local
+    load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")

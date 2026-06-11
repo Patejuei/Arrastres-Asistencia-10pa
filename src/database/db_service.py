@@ -212,12 +212,14 @@ class DBService:
                 for acto in data:
                     fecha_str = str(acto.get("fecha", ""))
                     direccion = str(acto.get("direccion", "")).lower()
+                    esquina = str(acto.get("esquina", "") or "").lower()
                     corr_gen = str(acto.get("corr_general", "") or "")
                     corr_cia = str(acto.get("corr_cia", ""))
                     clave_acto = str(acto.get("clave", "")).lower()
                     
                     if (q in fecha_str or 
                         q in direccion or 
+                        q in esquina or
                         q in corr_gen or 
                         q in corr_cia or
                         q in clave_acto):

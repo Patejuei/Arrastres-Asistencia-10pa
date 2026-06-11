@@ -20,6 +20,7 @@ CREATE TABLE public.actos_servicio (
     fecha DATE NOT NULL,
     clave VARCHAR(100) NOT NULL,
     direccion TEXT NOT NULL,
+    esquina TEXT NULL,
     tipo VARCHAR(50) NOT NULL CONSTRAINT chk_actos_tipo CHECK (tipo IN ('Efectiva', 'Abono')),
     cantidad_listas INTEGER NOT NULL DEFAULT 1,
     a_cargo_cia VARCHAR(50) REFERENCES public.bomberos(registro_general) ON UPDATE CASCADE,

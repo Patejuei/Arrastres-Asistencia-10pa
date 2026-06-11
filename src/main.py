@@ -1,3 +1,14 @@
+try:
+    import src
+except ModuleNotFoundError:
+    import sys
+    import os
+    import types
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    src_module = types.ModuleType('src')
+    src_module.__path__ = [app_dir]
+    sys.modules['src'] = src_module
+
 import flet as ft
 import locale
 

@@ -61,6 +61,7 @@ def create_arrastre_view(page: ft.Page) -> ft.Container:
             ft.DataColumn(label= ft.Text("Fecha")),
             ft.DataColumn(label= ft.Text("Clave")),
             ft.DataColumn(label= ft.Text("Dirección")),
+            ft.DataColumn(label= ft.Text("Esquina")),
             ft.DataColumn(label= ft.Text("Tipo")),
             ft.DataColumn(label= ft.Text("Asistencia")),
             ft.DataColumn(label= ft.Text("Acciones")),
@@ -179,6 +180,7 @@ def create_arrastre_view(page: ft.Page) -> ft.Container:
                             ft.DataCell(ft.Text(fecha_str)),
                             ft.DataCell(ft.Text(acto["clave"])),
                             ft.DataCell(ft.Text(acto["direccion"], max_lines=1)),
+                            ft.DataCell(ft.Text(acto.get("esquina") or "-", max_lines=1)),
                             ft.DataCell(
                                 ft.Container(
                                     content=ft.Text(acto["tipo"], color="#FFFFFF", size=10, weight=ft.FontWeight.W_500),
@@ -315,6 +317,7 @@ def create_arrastre_view(page: ft.Page) -> ft.Container:
         )
         
         direccion_input = ft.TextField(label="Dirección del Acto", expand=True)
+        esquina_input = ft.TextField(label="Esquina (Opcional)", expand=True)
         
         tipo_dropdown = ft.Dropdown(
             label="Tipo de Acto",
@@ -455,6 +458,7 @@ def create_arrastre_view(page: ft.Page) -> ft.Container:
                 corr_gen_input.value = str(current_acto["corr_general"] or "")
                 fecha_input.value = datetime.datetime.strptime(current_acto["fecha"][:10], "%Y-%m-%d").strftime("%d-%m-%Y")
                 direccion_input.value = current_acto["direccion"]
+                esquina_input.value = current_acto.get("esquina") or ""
                 tipo_dropdown.value = current_acto["tipo"]
                 a_cargo_dropdown.value = current_acto.get("a_cargo_cia")
                 tomo_lista_dropdown.value = current_acto.get("tomo_lista")
@@ -535,6 +539,7 @@ def create_arrastre_view(page: ft.Page) -> ft.Container:
                 "fecha": fecha_db_str,
                 "clave": clave_definitiva_dropdown.value,
                 "direccion": direccion_input.value,
+                "esquina": esquina_input.value.strip() if esquina_input.value else None,
                 "tipo": tipo_dropdown.value,
                 "a_cargo_cia": a_cargo_dropdown.value,
                 "tomo_lista": tomo_lista_dropdown.value,
@@ -599,7 +604,7 @@ def create_arrastre_view(page: ft.Page) -> ft.Container:
             ft.Row(controls=[corr_cia_input, corr_gen_input]),
             ft.Row(controls=[fecha_input, date_btn]),
             ft.Row(controls=[clave_categoria_dropdown, clave_definitiva_dropdown]),
-            ft.Row(controls=[direccion_input]),
+            ft.Row(controls=[direccion_input, esquina_input]),
             ft.Row(controls=[tipo_dropdown, cant_listas_input]),
             ft.Row(controls=[a_cargo_dropdown]),
             ft.Row(controls=[tomo_lista_dropdown]),
