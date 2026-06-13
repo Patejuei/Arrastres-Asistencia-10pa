@@ -17,9 +17,25 @@ class StatCard(ft.Container):
         alert_mode: bool = False,
         alert_color: str | None = None
     ):
-        # Configurar colores según el modo de alerta
-        border_color = alert_color if alert_mode else "#E4E4E7"
-        bg_color = f"{alert_color}0A" if alert_mode else "#FFFFFF"  # 0A es opacidad muy baja en hexadecimal
+        # Configurar colores según el modo de alerta y severidad
+        if alert_mode and alert_color:
+            c_upper = alert_color.upper()
+            if c_upper == "#FF4D4D":  # Alerta Roja
+                border_color = "#EF4444"  # Rojo Tailwind
+                bg_color = "#FEF2F2"      # Rojo pastel muy suave
+                text_icon_color = "#DC2626"
+            elif c_upper == "#FFAA00":  # Alerta Amarilla
+                border_color = "#F59E0B"  # Amarillo/Ámbar Tailwind
+                bg_color = "#FFFBEB"      # Amarillo pastel muy suave
+                text_icon_color = "#D97706"
+            else:
+                border_color = alert_color
+                bg_color = f"{alert_color}1A"  # ~10% de opacidad
+                text_icon_color = alert_color
+        else:
+            border_color = "#E4E4E7"
+            bg_color = "#FFFFFF"
+            text_icon_color = color
         
         content_column = ft.Column(
             controls=[
@@ -27,7 +43,7 @@ class StatCard(ft.Container):
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     controls=[
                         ft.Text(title, size=14, color="#71717A", weight=ft.FontWeight.W_500),
-                        ft.Icon(icon, color=color if not alert_mode else alert_color, size=24),
+                        ft.Icon(icon, color=text_icon_color, size=24),
                     ]
                 ),
                 ft.Text(value, size=28, weight=ft.FontWeight.BOLD, color="#18181B"),
@@ -60,7 +76,7 @@ class StatCard(ft.Container):
         # Efecto hover interactivo
         self.on_hover = self._handle_hover
         self.base_border_color = border_color
-        self.hover_color = color if not alert_mode else alert_color
+        self.hover_color = text_icon_color
 
     def _handle_hover(self, e):
         # Resaltar borde en hover

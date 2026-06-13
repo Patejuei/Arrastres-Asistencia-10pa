@@ -19,7 +19,6 @@ def create_licencias_view(page: ft.Page) -> ft.Container:
         on_change=lambda e: filter_licencias()
     )
 
-    # Tabla de Licencias
     licencias_table = ft.DataTable(
         columns=[
             # Cabecera
@@ -35,11 +34,20 @@ def create_licencias_view(page: ft.Page) -> ft.Container:
         rows=[],
         heading_row_color="#F8FAFC",
         divider_thickness=1,
-        expand=True
     )
 
     table_container = ft.Container(
-        content=ft.Column(controls=[licencias_table], scroll=ft.ScrollMode.AUTO, expand=True),
+        content=ft.Column(
+            controls=[
+                ft.Row(
+                    controls=[licencias_table],
+                    scroll=ft.ScrollMode.AUTO,
+                    vertical_alignment=ft.CrossAxisAlignment.START,
+                )
+            ],
+            scroll=ft.ScrollMode.AUTO,
+            expand=True
+        ),
         border_radius=8,
         border=ft.Border.all(width=1, color="#E4E4E7"),
         bgcolor="#FFFFFF",

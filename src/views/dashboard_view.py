@@ -297,7 +297,6 @@ def create_dashboard_view(page: ft.Page) -> ft.Container:
                 rows=rojas_rows,
                 heading_row_color="#F8FAFC",
                 divider_thickness=1,
-                expand=True
             )
 
             amarillas_table = ft.DataTable(
@@ -311,18 +310,37 @@ def create_dashboard_view(page: ft.Page) -> ft.Container:
                 rows=amarillas_rows,
                 heading_row_color="#F8FAFC",
                 divider_thickness=1,
-                expand=True
             )
 
             red_tab_controls: list[ft.Control] = [ # type: ignore
                 ft.Container(height=5),
-                ft.Column(controls=[rojas_table], scroll=ft.ScrollMode.AUTO, expand=True) if rojas_rows else 
+                ft.Column(
+                    controls=[
+                        ft.Row(
+                            controls=[rojas_table],
+                            scroll=ft.ScrollMode.AUTO,
+                            vertical_alignment=ft.CrossAxisAlignment.START,
+                        )
+                    ],
+                    scroll=ft.ScrollMode.AUTO,
+                    expand=True
+                ) if rojas_rows else 
                 ft.Container(content=ft.Text("No hay bomberos en alerta roja. ¡Excelente!", italic=True, color="#71717A"), padding=30, alignment=ft.alignment.Alignment(0, 0))
             ]
 
             yellow_tab_controls: list[ft.Control] = [ # type: ignore
                 ft.Container(height=5),
-                ft.Column(controls=[amarillas_table], scroll=ft.ScrollMode.AUTO, expand=True) if amarillas_rows else
+                ft.Column(
+                    controls=[
+                        ft.Row(
+                            controls=[amarillas_table],
+                            scroll=ft.ScrollMode.AUTO,
+                            vertical_alignment=ft.CrossAxisAlignment.START,
+                        )
+                    ],
+                    scroll=ft.ScrollMode.AUTO,
+                    expand=True
+                ) if amarillas_rows else
                 ft.Container(content=ft.Text("No hay bomberos en alerta amarilla.", italic=True, color="#71717A"), padding=30, alignment=ft.alignment.Alignment(0, 0))
             ]
 

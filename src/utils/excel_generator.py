@@ -61,6 +61,9 @@ def generate_arrastre_excel(file_path: str, fecha_inicio: str, fecha_fin: str) -
         res_actos = supabase.table("actos_servicio").select("*").gte("fecha", fecha_inicio).lte("fecha", fecha_fin).execute()
         actos: list[dict[str, Any]] = cast(list[dict[str, Any]], res_actos.data or [])
         
+        # Ordenar actos cronológicamente (fecha ascendente, luego correlativo de compañía)
+        actos.sort(key=lambda x: (x.get("fecha", ""), x.get("corr_cia", 0)))
+        
         # 3. Obtener todas las asistencias de esos actos
         asistencias: list[dict[str, Any]] = []
         if actos:
@@ -182,6 +185,187 @@ def generate_arrastre_excel(file_path: str, fecha_inicio: str, fecha_fin: str) -
             row_idx += 1
             
         auto_fit_columns(ws)
+        
+        # =========================================================================
+        # HOJA 2: ACTOS
+        # =========================================================================
+        ws_actos = wb.create_sheet(title="Actos")
+        
+        # Títulos
+        ws_actos.cell(row=1, column=1, value='Décima Compañía "Bomba Suiza"').font = TITLE_FONT
+        ws_actos.cell(row=2, column=1, value=f"Listado de Actos: {f_ini.strftime('%d-%m-%Y')} al {f_fin.strftime('%d-%m-%Y')}").font = SUBTITLE_FONT
+        ws_actos.row_dimensions[1].height = 25
+        ws_actos.row_dimensions[2].height = 18
+        
+        # Encabezados
+        headers_actos = ["Corr. General", "Corr. Compañía", "Fecha", "Clave", "Dirección", "Esquina", "Tipo Acto", "Total Asistencia"]
+        ws_actos.row_dimensions[4].height = 24
+        
+        for col_idx, text in enumerate(headers_actos, 1):
+            cell = ws_actos.cell(row=4, column=col_idx, value=text)
+            cell.font = HEADER_FONT
+            cell.fill = HEADER_FILL
+            cell.alignment = ALIGN_CENTER
+            cell.border = THIN_BORDER
+            
+        row_actos = 5
+        for acto in actos:
+            fecha_acto_str = parse_date(acto["fecha"]).strftime("%d-%m-%Y")
+            corr_gen = acto.get("corr_general")
+            corr_gen_val = corr_gen if corr_gen is not None else "-"
+            esq = acto.get("esquina")
+            esq_val = esq if esq else "-"
+            
+            ws_actos.cell(row=row_actos, column=1, value=corr_gen_val).alignment = ALIGN_CENTER
+            ws_actos.cell(row=row_actos, column=2, value=acto["corr_cia"]).alignment = ALIGN_CENTER
+            ws_actos.cell(row=row_actos, column=3, value=fecha_acto_str).alignment = ALIGN_CENTER
+            ws_actos.cell(row=row_actos, column=4, value=acto["clave"]).alignment = ALIGN_CENTER
+            ws_actos.cell(row=row_actos, column=5, value=acto["direccion"]).alignment = ALIGN_LEFT
+            ws_actos.cell(row=row_actos, column=6, value=esq_val).alignment = ALIGN_LEFT
+            ws_actos.cell(row=row_actos, column=7, value=acto["tipo"]).alignment = ALIGN_CENTER
+            ws_actos.cell(row=row_actos, column=8, value=acto.get("total_asistencia", 0)).alignment = ALIGN_CENTER
+            
+            for c in range(1, 9):
+                ws_actos.cell(row=row_actos, column=c).font = DATA_FONT
+                ws_actos.cell(row=row_actos, column=c).border = THIN_BORDER
+                
+            ws_actos.row_dimensions[row_actos].height = 18
+            row_actos += 1
+            
+        auto_fit_columns(ws_actos)
+        
+        # =========================================================================
+        # HOJA 3: ASISTENCIAS (MATRIZ CRUZADA)
+        # =========================================================================
+        ws_asis = wb.create_sheet(title="Asistencias")
+        
+        # Títulos
+        ws_asis.cell(row=1, column=1, value='Décima Compañía "Bomba Suiza"').font = TITLE_FONT
+        ws_asis.cell(row=2, column=1, value=f"Matriz de Asistencia: {f_ini.strftime('%d-%m-%Y')} al {f_fin.strftime('%d-%m-%Y')}").font = SUBTITLE_FONT
+        ws_asis.row_dimensions[1].height = 25
+        ws_asis.row_dimensions[2].height = 18
+        
+        # Encabezados de la Matriz
+        ws_asis.row_dimensions[4].height = 36
+        
+        # Primeras dos columnas fijas
+        cell_reg = ws_asis.cell(row=4, column=1, value="Reg. Gral.")
+        cell_reg.font = HEADER_FONT
+        cell_reg.fill = HEADER_FILL
+        cell_reg.alignment = ALIGN_CENTER
+        cell_reg.border = THIN_BORDER
+        
+        cell_nom = ws_asis.cell(row=4, column=2, value="Bombero")
+        cell_nom.font = HEADER_FONT
+        cell_nom.fill = HEADER_FILL
+        cell_nom.alignment = ALIGN_CENTER
+        cell_nom.border = THIN_BORDER
+        
+        # Columnas de actos
+        for idx, acto in enumerate(actos):
+            fecha_acto_str = parse_date(acto["fecha"]).strftime("%d-%m")
+            cabecera_acto = f"C-{acto['corr_cia']} ({acto['clave']})\n{fecha_acto_str}"
+            col_col = 3 + idx
+            
+            cell_acto = ws_asis.cell(row=4, column=col_col, value=cabecera_acto)
+            cell_acto.font = HEADER_FONT
+            cell_acto.fill = HEADER_FILL
+            cell_acto.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell_acto.border = THIN_BORDER
+            
+        # Columnas de totales al final
+        col_tot_efec = 3 + len(actos)
+        col_tot_abon = 4 + len(actos)
+        col_tot_list = 5 + len(actos)
+        
+        totals_headers = [
+            (col_tot_efec, "Total Efectivas"),
+            (col_tot_abon, "Total Abono"),
+            (col_tot_list, "Total Listas")
+        ]
+        
+        for col_col, text in totals_headers:
+            cell_tot = ws_asis.cell(row=4, column=col_col, value=text)
+            cell_tot.font = HEADER_FONT
+            cell_tot.fill = HEADER_FILL
+            cell_tot.alignment = ALIGN_CENTER
+            cell_tot.border = THIN_BORDER
+            
+        row_asis = 5
+        for b in bomberos:
+            reg = b["registro_general"]
+            nombre_bombero = f"{b['apellido_paterno']} {b['apellido_materno']}, {b['nombres']}"
+            
+            # Escribir Reg. Gral. y Bombero
+            ws_asis.cell(row=row_asis, column=1, value=reg).alignment = ALIGN_CENTER
+            ws_asis.cell(row=row_asis, column=2, value=nombre_bombero).alignment = ALIGN_LEFT
+            
+            total_efec_b = 0
+            total_abon_b = 0
+            
+            # Escribir asistencias por acto
+            for idx, acto in enumerate(actos):
+                col_col = 3 + idx
+                listas_asis = asis_map.get((acto["id"], reg), 0)
+                
+                val_celda = listas_asis if listas_asis > 0 else ""
+                ws_asis.cell(row=row_asis, column=col_col, value=val_celda).alignment = ALIGN_CENTER
+                
+                # Acumular para totales del bombero en Python
+                if listas_asis > 0:
+                    if acto["tipo"] == "Efectiva":
+                        total_efec_b += listas_asis
+                    elif acto["tipo"] == "Abono":
+                        total_abon_b += listas_asis
+                        
+            # Escribir los totales en las últimas columnas
+            ws_asis.cell(row=row_asis, column=col_tot_efec, value=total_efec_b).alignment = ALIGN_CENTER
+            ws_asis.cell(row=row_asis, column=col_tot_abon, value=total_abon_b).alignment = ALIGN_CENTER
+            ws_asis.cell(row=row_asis, column=col_tot_list, value=total_efec_b + total_abon_b).alignment = ALIGN_CENTER
+            
+            # Aplicar fuentes y bordes
+            num_cols = 5 + len(actos)
+            for c in range(1, num_cols + 1):
+                cell_c = ws_asis.cell(row=row_asis, column=c)
+                if c in [col_tot_efec, col_tot_abon, col_tot_list]:
+                    cell_c.font = BOLD_FONT
+                else:
+                    cell_c.font = DATA_FONT
+                cell_c.border = THIN_BORDER
+                
+            ws_asis.row_dimensions[row_asis].height = 18
+            row_asis += 1
+            
+        # Fila de totales por acto al final
+        ws_asis.cell(row=row_asis, column=2, value="Total Acto").alignment = ALIGN_RIGHT
+        ws_asis.cell(row=row_asis, column=2).font = BOLD_FONT
+        ws_asis.cell(row=row_asis, column=2).border = THIN_BORDER
+        ws_asis.cell(row=row_asis, column=1).border = THIN_BORDER
+        
+        # Fórmulas de suma por columna para actos
+        for idx in range(len(actos)):
+            col_col = 3 + idx
+            col_letter = get_column_letter(col_col)
+            formula = f"=SUM({col_letter}5:{col_letter}{row_asis-1})"
+            
+            cell_sum = ws_asis.cell(row=row_asis, column=col_col, value=formula)
+            cell_sum.alignment = ALIGN_CENTER
+            cell_sum.font = BOLD_FONT
+            cell_sum.border = THIN_BORDER
+            
+        # Fórmulas de suma para los totales generales
+        for col_col in [col_tot_efec, col_tot_abon, col_tot_list]:
+            col_letter = get_column_letter(col_col)
+            formula = f"=SUM({col_letter}5:{col_letter}{row_asis-1})"
+            cell_sum = ws_asis.cell(row=row_asis, column=col_col, value=formula)
+            cell_sum.alignment = ALIGN_CENTER
+            cell_sum.font = BOLD_FONT
+            cell_sum.border = THIN_BORDER
+            
+        ws_asis.row_dimensions[row_asis].height = 20
+        
+        auto_fit_columns(ws_asis)
+        
         wb.save(file_path)
         return True, "Reporte de Arrastre de Asistencia generado con éxito."
     except Exception as e:
