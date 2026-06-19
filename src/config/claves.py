@@ -21,7 +21,9 @@ CLAVES_DESPACHO = {
     "10-15": "10-15 Simulacro o Ejercicio de Entrenamiento",
     "10-16": "10-16 Llamado a Tunel",
     "10-17": "10-17 Emergencia en Metro o Subte",
-    "10-18": "10-18 Llamado a Emergencia Sector Limite"
+    "10-18": "10-18 Llamado a Emergencia Sector Limite",
+    "Citaciones" : "Citaciones de Compañía o Cuerpo",
+    "Otros" : "Otros (No clasificados en categorías anteriores)"
 }
 
 # 2. Claves definitivas por categoría (Segundo selector y clave definitiva)
@@ -120,4 +122,15 @@ CLAVES_DEFINITIVAS = {
     "10-18": [
         ("10-18", "10-18 Llamado a Emergencia Sector Limite")
     ],
+    "Citaciones": [
+      ("Sesión de Compañía", "Citación a Sesión de Compañía"),
+      ("Academia de Compañía", "Citación a Academia de Compañía"),
+      ("Funeral", "Citación a Funeral"),
+      ("Citación de Comandancia", "Citación a Actividad de Comandancia"),
+      ("Sesión Solemne", "Citación a Sesión Solemne"),
+      ("Romería", "Citación a Romería")
+    ],
+    "Otros": [
+      ("Otros", "Otros (No clasificados en categorías anteriores)")
+    ]
 }
